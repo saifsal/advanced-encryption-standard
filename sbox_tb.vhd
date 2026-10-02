@@ -1,0 +1,63 @@
+--library ieee;
+--use ieee.std_logic_1164.all;
+--use ieee.numeric_std.all;
+--
+--library work;
+--use work.aes128_header.all;
+--
+--entity tb_sbox is
+--end tb_sbox;
+--
+--architecture tb of tb_sbox is
+--
+--    component sbox
+--        port (byte_in  : in  byte;
+--              byte_out : out byte);
+--    end component;
+--
+--    signal byte_in  : byte;
+--    signal byte_out : byte;
+--
+--begin 
+--
+--    sb : sbox
+--    port map (byte_in  => byte_in,
+--              byte_out => byte_out);
+--	
+--    stimuli : process
+--    begin
+--		byte_in <= x"DC";
+--		wait for 10 ns;
+--		byte_in <= x"DD";
+--		wait for 10 ns;
+--		byte_in <= x"DE";
+--		wait for 10 ns;
+--		byte_in <= x"DF";
+--		wait for 10 ns;
+--		byte_in <= x"EA";
+--		wait for 10 ns;
+--		byte_in <= x"EB";
+--		wait for 10 ns;
+--		byte_in <= x"EC";
+--		wait for 10 ns;
+--		byte_in <= x"ED";
+--		wait for 10 ns;
+--		byte_in <= x"EE";
+--		wait for 10 ns;
+--		byte_in <= x"EF";
+--		wait for 10 ns;
+--		byte_in <= x"FA";
+--		wait for 10 ns;
+--		byte_in <= x"FB";
+--		wait for 10 ns;
+--		byte_in <= x"FC";
+--		wait for 10 ns;
+--		byte_in <= x"FD";
+--		wait for 10 ns;
+--		byte_in <= x"FE";
+--		wait for 10 ns;
+--		byte_in <= x"FF";
+--      wait;
+--    end process;
+--
+--end tb;
