@@ -1,0 +1,38 @@
+--library ieee;
+--use ieee.std_logic_1164.all;
+--use ieee.numeric_std.all;
+--
+--library work;
+--use work.aes128_header.all;
+--
+--entity tb_mix_array is
+--end tb_mix_array;
+--
+--architecture tb of tb_mix_array is
+--
+--    component mix_array
+--        port (arr_in  : in byte_array;
+--              arr_out : out byte_array);
+--    end component;
+--
+--    signal arr_in  : byte_array;
+--    signal arr_out : byte_array;
+--
+--
+--begin
+--
+--    ma : mix_array
+--    port map (arr_in  => arr_in,
+--              arr_out => arr_out);
+--
+--    stimuli : process
+--    begin
+--		arr_in(0) <= x"D4";
+--		arr_in(1) <= x"BF";
+--		arr_in(2) <= x"5D";
+--		arr_in(3) <= x"30";
+--		wait for 10 ns;
+--      wait;
+--    end process;
+--
+--end tb;
