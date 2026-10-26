@@ -6,7 +6,7 @@ VHDL implementation of AES-128 encryption. `aes128_block` is a combinational dat
 
 The cipher is encryption only. Decryption, block-cipher modes, and padding are not in this repository. The Quartus Prime 18.1 project targets a Cyclone V `5CSEMA5F31C6` on the DE1-SoC, with top-level entity `mm_bus_aes128`.
 
-The four live testbenches are stimulus benches. They do not check expected values. Under GHDL 4.1.0 with `--syn-binding`, the datapath and the Avalon slave both produce ciphertext `29C3505F571420F6402299B31A02D73A` for the vector those benches apply. There is no continuous-integration workflow, and the FPGA project has not been compiled in the environment used to check these docs (Quartus Prime is not installed there). `aes128.qsf` still lists `aes128_clk.vhd`, and that file is not in the tree.
+The four live testbenches check expected values. Under GHDL 4.1.0 with `--syn-binding`, the datapath and the Avalon slave both produce ciphertext `29C3505F571420F6402299B31A02D73A` for the Kung Fu vector, and the benches fail if that value, the FIPS-197 Appendix C.1 ciphertext, the Kung Fu round keys, or Kung Fu round 1 changes. There is no continuous-integration workflow, and the FPGA project has not been compiled in the environment used to check these docs (Quartus Prime is not installed there). `aes128.qsf` still lists `aes128_clk.vhd`, and that file is not in the tree.
 
 ## Repository layout
 
@@ -24,10 +24,10 @@ Sources sit in the repository root. There is no source subdirectory, Makefile, o
 | `key_generator.vhd` | AES-128 key expansion. Output `roundkeys` is an `oword_array` of eleven 128-bit keys, index 0 through 10 |
 | `aes128_block.vhd` | Full encrypt datapath. Round 0 is AddRoundKey, rounds 1–9 are `cipher_round`, round 10 is SubBytes, ShiftRows, and AddRoundKey |
 | `mm_bus_aes128.vhd` | Clocked Avalon-MM slave around `aes128_block`. This is the Quartus top level |
-| `aes128_block_tb.vhd` | Stimulus bench, entity `aes128_block_tb` |
-| `cipher_round_tb.vhd` | Stimulus bench, entity `cipher_round_tb` |
-| `key_generator_tb.vhd` | Stimulus bench, entity `key_generator_tb` |
-| `mm_bus_aes128_tb.vhd` | Stimulus bench, entity `tb_mm_bus_aes128` |
+| `aes128_block_tb.vhd` | Self-checking bench, entity `aes128_block_tb` |
+| `cipher_round_tb.vhd` | Self-checking bench, entity `cipher_round_tb` |
+| `key_generator_tb.vhd` | Self-checking bench, entity `key_generator_tb` |
+| `mm_bus_aes128_tb.vhd` | Self-checking bench, entity `tb_mm_bus_aes128` |
 | `sbox_tb.vhd` | Commented out. Not a design unit |
 | `mix_array_tb.vhd` | Commented out. Not a design unit |
 | `aes128.qpf` | Quartus Prime project file, revision `aes128` |
@@ -75,7 +75,7 @@ ghdl -r --std=93 --workdir=/tmp/aes128-work --syn-binding key_generator_tb
 ghdl -r --std=93 --workdir=/tmp/aes128-work --syn-binding tb_mm_bus_aes128
 ```
 
-Checked with GHDL 4.1.0. Each `ghdl -r` command exits 0. The benches do not print a pass/fail line. They end on a bare `wait`, and GHDL stops once nothing else is scheduled. Each run also prints `NUMERIC_STD.TO_INTEGER: metavalue detected` warnings at time 0, because `sbox` indexes the lookup table while inputs are still uninitialized. The settled values are still valid.
+Checked with GHDL 4.1.0. Each `ghdl -r` command exits 0 when its assertions pass. The benches do not print a pass line. They end on a bare `wait` after the checks, and GHDL stops once nothing else is scheduled. A mismatched vector is reported at `severity failure` and the run exits non-zero. Each run also prints `NUMERIC_STD.TO_INTEGER: metavalue detected` warnings at time 0, because `sbox` indexes the lookup table while inputs are still uninitialized. The settled values are still valid.
 
 `aes128_block_tb` applies plaintext `54776F204F6E65204E696E652054776F` and key `5468617473206D79204B756E67204675`. A VCD dump of that run shows ciphertext `29C3505F571420F6402299B31A02D73A`. Dump it with:
 
@@ -124,7 +124,7 @@ Local simulation tooling is GHDL, as run in Build, run and test.
 
 - GHDL's default elaboration does not bind the component instances in this design. `ghdl -r` needs `--syn-binding`, or the hierarchy is empty and the ciphertext stays `U`. Quartus-style default binding is what the RTL was written for.
 - `sbox_tb.vhd` and `mix_array_tb.vhd` are entirely comments. Analyzing either file fails.
-- Nothing in the benches asserts the ciphertext. Exit code 0 means the bench elaborated and ran, not that a vector was checked. `cipher_round_tb` and `key_generator_tb` only drive inputs.
+- Exit code 0 means the assertions in that bench passed. The benches still do not print a pass line. `aes128_block_tb` checks the Kung Fu ciphertext and FIPS-197 Appendix C.1. `cipher_round_tb` checks Kung Fu round 1. `key_generator_tb` checks all eleven Kung Fu round keys. `mm_bus_aes128_tb` checks the four ciphertext words, that a key-register read is zero, and that reset clears `avs_s1_readdata`.
 - In `mm_bus_aes128_tb.vhd` the entity name is `tb_mm_bus_aes128`. Pass that name to `ghdl -r`, not the filename.
 - That same bench samples `avs_s1_readdata` into `result` in the stimulus process on the same delta cycle that raises the clock. `result` therefore stays at `Z` / the previous value. The slave port `avs_s1_readdata` itself does return the ciphertext words on the following delta. Read the port in a waveform if you need the bus result.
 - `aes128.qsf` lists `aes128_clk.vhd`. That file is not in the repository.
