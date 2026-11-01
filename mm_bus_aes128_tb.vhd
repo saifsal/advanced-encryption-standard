@@ -42,6 +42,10 @@ begin
 
     stimuli : process
     begin
+        wait for 1 ns;
+        assert avs_s1_readdata = x"00000000"
+            report "reset did not clear readdata"
+            severity failure;
 	csi_clockreset_reset_n <= '1';
         avs_s1_read <= '0';
         avs_s1_write <= '1';
@@ -124,6 +128,9 @@ begin
         avs_s1_address <= x"00";      
         result(127 downto 96) <= avs_s1_readdata;
         wait for 25 ns;
+        assert avs_s1_readdata = x"29C3505F"
+            report "bus ciphertext word 0 mismatch"
+            severity failure;
         csi_clockreset_clk <= '0';
         wait for 25 ns;
 
@@ -131,6 +138,9 @@ begin
         avs_s1_address <= x"01";         
         result(95 downto 64) <= avs_s1_readdata;
         wait for 25 ns;
+        assert avs_s1_readdata = x"571420F6"
+            report "bus ciphertext word 1 mismatch"
+            severity failure;
         csi_clockreset_clk <= '0';
         wait for 25 ns;
         
@@ -138,6 +148,9 @@ begin
         avs_s1_address <= x"02";                       
         result(63 downto 32) <= avs_s1_readdata;
         wait for 25 ns;
+        assert avs_s1_readdata = x"402299B3"
+            report "bus ciphertext word 2 mismatch"
+            severity failure;
         csi_clockreset_clk <= '0';
         wait for 25 ns;
 
@@ -145,8 +158,20 @@ begin
         avs_s1_address <= x"03";               
         result(31 downto 0) <= avs_s1_readdata;
         wait for 25 ns;
+        assert avs_s1_readdata = x"1A02D73A"
+            report "bus ciphertext word 3 mismatch"
+            severity failure;
         csi_clockreset_clk <= '0';
-        wait for 25 ns;      
+        wait for 25 ns;
+
+        csi_clockreset_clk <= '1';
+        avs_s1_address <= x"04";
+        wait for 25 ns;
+        assert avs_s1_readdata = x"00000000"
+            report "key register must read as zero"
+            severity failure;
+        csi_clockreset_clk <= '0';
+        wait for 25 ns;
         wait;
     end process;
 

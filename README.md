@@ -25,7 +25,7 @@ The datapath is combinational. Only the Avalon slave is clocked. Decryption, cip
 | Key | `5468617473206D79204B756E67204675` |
 | Ciphertext | `29C3505F571420F6402299B31A02D73A` |
 
-The ciphertext above is the value GHDL 4.1.0 produced for that stimulus with `--syn-binding`, on both `aes128_block.ciphertext` and the Avalon read data. The benches do not check it themselves.
+`aes128_block_tb` and `mm_bus_aes128_tb` both assert that ciphertext. The block bench also checks FIPS-197 Appendix C.1 (plaintext `3243F6A8885A308D313198A2E0370734`, key `2B7E151628AED2A6ABF7158809CF4F3C`, ciphertext `3925841D02DC09FBDC118597196A0B32`). `key_generator_tb` asserts the eleven round keys for the Kung Fu key, and `cipher_round_tb` asserts round 1 of that same vector.
 
 ## Prerequisites
 
@@ -117,7 +117,7 @@ ghdl -r --std=93 --workdir=/tmp/aes128-work --syn-binding tb_mm_bus_aes128
 
 `--syn-binding` is required. Without it, GHDL 4.1.0 does not bind the component instances and the ciphertext stays unknown. The work library is `/tmp/aes128-work` so GHDL's `work-obj93.cf` stays out of the tree.
 
-All four runs exit 0. They also print `NUMERIC_STD.TO_INTEGER: metavalue detected` at time 0, while the S-box still sees uninitialized inputs. There is no assertion, so a zero exit code means the bench ran. To inspect the datapath result:
+All four runs exit 0 when every assertion passes. They do not print a pass line. They also print `NUMERIC_STD.TO_INTEGER: metavalue detected` at time 0, while the S-box still sees uninitialized inputs. An assertion failure stops the run with a non-zero status. To inspect the datapath result:
 
 ```bash
 ghdl -r --std=93 --workdir=/tmp/aes128-work --syn-binding aes128_block_tb --vcd=/tmp/aes128-work/aes128_block_tb.vcd
@@ -133,7 +133,7 @@ Source layout, coding conventions, and simulator quirks are written up in `AGENT
 
 The repository contains a working AES-128 encrypt core and its Avalon-MM wrapper, plus waveform testbenches for the core, one cipher round, key expansion, and the slave. The Quartus project was created on 20 June 2019 with Quartus Prime 18.1.0.
 
-Still open in the tree itself: the two commented-out unit benches, the missing `aes128_clk.vhd` named by `aes128.qsf`, and the lack of self-checking assertions. The repository does not include a roadmap.
+Still open in the tree itself: the two commented-out unit benches and the missing `aes128_clk.vhd` named by `aes128.qsf`. The repository does not include a roadmap.
 
 ## Licence
 
